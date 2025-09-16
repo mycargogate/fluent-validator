@@ -2,9 +2,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>ch.mycargogate.fluent-validator</groupId>
   <artifactId>fluent-validator-core</artifactId>
   <version>1.0.0</version>
+
   <name>Fluent Validator Core</name>
   <description>Fluent Java object validation library with CSV loader and demo</description>
   <packaging>jar</packaging>
