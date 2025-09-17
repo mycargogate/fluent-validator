@@ -1,0 +1,1 @@
+{"fields":[{"name":"name","mandatory":true,"notBlank":true},{"name":"age","mandatory":true,"min":0,"max":120}],"objectRules":[{"message":"User must be an adult"}]}
