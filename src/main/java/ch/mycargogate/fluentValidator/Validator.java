@@ -133,6 +133,15 @@ public class Validator<T> {
         private LocalDate notBefore, notAfter;
         private List<Map.Entry<Predicate<Object>, String>> customRules = new ArrayList<>();
 
+        @FunctionalInterface
+        public interface FieldReference<T, R> extends java.io.Serializable {
+            R apply(T t);
+        }
+
+        FieldRule(FieldName.FieldReference<T, ?> ref) {
+            this(FieldName.nameOf(ref));
+        }
+
         FieldRule(String fieldName) {
             this.fieldName = fieldName;
         }
