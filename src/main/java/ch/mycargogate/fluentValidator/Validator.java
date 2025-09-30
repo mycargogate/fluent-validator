@@ -3,7 +3,6 @@ package ch.mycargogate.fluentValidator;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -51,12 +50,16 @@ public class Validator<T> {
         private final Validator<T> validator = new Validator<>();
         private FieldRule<T> currentFieldRule;
 
-        public FieldRuleBuilder fieldRule(String fieldName) {
+        public FieldRuleBuilder<T> fieldRule(String fieldName) {
             if (currentFieldRule != null) {
                 validator.fieldRules.add(currentFieldRule);
             }
             currentFieldRule = new FieldRule<>(fieldName);
-            return new FieldRuleBuilder(currentFieldRule, this);
+            return new FieldRuleBuilder<T>(currentFieldRule, this);
+        }
+
+        FieldRuleBuilder<T> fieldRule(FieldName.FieldReference<T, ?> ref) {
+            return fieldRule(FieldName.nameOf(ref));
         }
 
         public Builder<T> objectRule(Predicate<T> predicate, String message) {
@@ -120,6 +123,11 @@ public class Validator<T> {
         }
     }
 
+    @FunctionalInterface
+    public interface FieldReference<T, R> extends java.io.Serializable {
+        R apply(T t);
+    }
+
     // ==== FieldRule ====
     private static class FieldRule<T> {
         private final String fieldName;
@@ -133,10 +141,6 @@ public class Validator<T> {
         private LocalDate notBefore, notAfter;
         private List<Map.Entry<Predicate<Object>, String>> customRules = new ArrayList<>();
 
-        @FunctionalInterface
-        public interface FieldReference<T, R> extends java.io.Serializable {
-            R apply(T t);
-        }
 
         FieldRule(FieldName.FieldReference<T, ?> ref) {
             this(FieldName.nameOf(ref));
