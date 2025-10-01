@@ -58,7 +58,7 @@ public class Validator<T> {
             return new FieldRuleBuilder<T>(currentFieldRule, this);
         }
 
-        FieldRuleBuilder<T> fieldRule(FieldName.FieldReference<T, ?> ref) {
+        public FieldRuleBuilder<T> fieldRule(FieldName.FieldReference<T, ?> ref) {
             return fieldRule(FieldName.nameOf(ref));
         }
 
@@ -114,13 +114,23 @@ public class Validator<T> {
         public FieldRuleBuilder<T> notAfter(LocalDate date) { rule.notAfter = date; return this; }
 
         public FieldRuleBuilder<T> custom(Predicate<Object> predicate, String message) {
-            rule.customRules.add(new AbstractMap.SimpleEntry<>(predicate, message));
+            rule.customRules.add(new FieldRule.CustomRule(predicate, message));
+            return this;
+        }
+
+        public FieldRuleBuilder<T> validate(FieldValidator<T> validator) {
+            rule.validators.add(validator);
             return this;
         }
 
         public Builder<T> done() {
             return parent;
         }
+    }
+
+    @FunctionalInterface
+    public interface FieldValidator<T> extends java.io.Serializable {
+        List<ValidationError> validate(String fieldName, Object value);
     }
 
     @FunctionalInterface
@@ -139,8 +149,9 @@ public class Validator<T> {
         private Set<String> enumValues;
         private Integer minSize, maxSize;
         private LocalDate notBefore, notAfter;
-        private List<Map.Entry<Predicate<Object>, String>> customRules = new ArrayList<>();
-
+        public static record CustomRule(Predicate<Object> predicate, String message) { }
+        private final List<CustomRule> customRules = new ArrayList<>();
+        private final List<FieldValidator<T>> validators = new ArrayList<>();
 
         FieldRule(FieldName.FieldReference<T, ?> ref) {
             this(FieldName.nameOf(ref));
@@ -217,10 +228,15 @@ public class Validator<T> {
             }
 
             // custom rules
-            for (var entry : customRules) {
-                if (!entry.getKey().test(value)) {
-                    errors.add(new ValidationError(fieldName, "custom", entry.getValue()));
+            for (var customRule : customRules) {
+                if (!customRule.predicate().test(value)) {
+                    errors.add(new ValidationError(fieldName, "custom", customRule.message()));
                 }
+            }
+
+            // validators
+            for (var validator : validators) {
+                errors.addAll(validator.validate(fieldName, value));
             }
         }
     }
