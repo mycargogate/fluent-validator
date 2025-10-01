@@ -32,7 +32,7 @@ public class ValidatorReaderCSV<T> {
                 String[] parts = line.split(",");
                 if (parts[0].equalsIgnoreCase("field")) {
                     String fieldName = parts[1];
-                    Validator.FieldRuleBuilder<T> fr = builder.fieldRule(fieldName);
+                    Validator.FieldRuleBuilder<T, Object> fr = builder.fieldRule(fieldName);
                     for (int i = 2; i < parts.length; i++) {
                         String token = parts[i].trim();
                         if (token.equals("mandatory")) fr.mandatory();

@@ -40,7 +40,7 @@ public class ValidatorReaderJson<T> {
 
             if (root.has("fields")) {
                 for (JsonNode f : root.get("fields")) {
-                    Validator.FieldRuleBuilder<T> fr = builder.fieldRule(f.get("name").asText());
+                    Validator.FieldRuleBuilder<T, Object> fr = builder.fieldRule(f.get("name").asText());
                     if (f.has("mandatory") && f.get("mandatory").asBoolean()) fr.mandatory();
                     if (f.has("notBlank") && f.get("notBlank").asBoolean()) fr.notBlank();
                     if (f.has("min")) fr.min(f.get("min").asDouble());

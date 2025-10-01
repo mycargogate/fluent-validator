@@ -50,16 +50,16 @@ public class Validator<T> {
         private final Validator<T> validator = new Validator<>();
         private FieldRule<T> currentFieldRule;
 
-        public FieldRuleBuilder<T> fieldRule(String fieldName) {
+        public FieldRuleBuilder<T, Object> fieldRule(String fieldName) {
             if (currentFieldRule != null) {
                 validator.fieldRules.add(currentFieldRule);
             }
             currentFieldRule = new FieldRule<>(fieldName);
-            return new FieldRuleBuilder<T>(currentFieldRule, this);
+            return new FieldRuleBuilder<T, Object>(currentFieldRule, this);
         }
 
-        public FieldRuleBuilder<T> fieldRule(FieldName.FieldReference<T, ?> ref) {
-            return fieldRule(FieldName.nameOf(ref));
+        public <F> FieldRuleBuilder<T, F> fieldRule(FieldName.FieldReference<T, F> ref) {
+            return (FieldRuleBuilder<T, F>)fieldRule(FieldName.nameOf(ref));
         }
 
         public Builder<T> objectRule(Predicate<T> predicate, String message) {
@@ -82,7 +82,7 @@ public class Validator<T> {
     }
 
     // ==== FieldRule Builder ====
-    public static class FieldRuleBuilder<T> {
+    public static class FieldRuleBuilder<T, F> {
         private final FieldRule<T> rule;
         private final Builder<T> parent;
 
@@ -91,35 +91,35 @@ public class Validator<T> {
             this.parent = parent;
         }
 
-        public FieldRuleBuilder<T> mandatory() { rule.mandatory = true; return this; }
-        public FieldRuleBuilder<T> optional() { rule.mandatory = false; return this; }
+        public FieldRuleBuilder<T, F> mandatory() { rule.mandatory = true; return this; }
+        public FieldRuleBuilder<T, F> optional() { rule.mandatory = false; return this; }
 
-        public FieldRuleBuilder<T> min(Number min) { rule.min = min.doubleValue(); return this; }
-        public FieldRuleBuilder<T> max(Number max) { rule.max = max.doubleValue(); return this; }
+        public FieldRuleBuilder<T, F> min(Number min) { rule.min = min.doubleValue(); return this; }
+        public FieldRuleBuilder<T, F> max(Number max) { rule.max = max.doubleValue(); return this; }
 
-        public FieldRuleBuilder<T> minLength(int len) { rule.minLength = len; return this; }
-        public FieldRuleBuilder<T> maxLength(int len) { rule.maxLength = len; return this; }
-        public FieldRuleBuilder<T> regex(String pattern) { rule.regex = pattern; return this; }
-        public FieldRuleBuilder<T> notBlank() { rule.notBlank = true; return this; }
+        public FieldRuleBuilder<T, F> minLength(int len) { rule.minLength = len; return this; }
+        public FieldRuleBuilder<T, F> maxLength(int len) { rule.maxLength = len; return this; }
+        public FieldRuleBuilder<T, F> regex(String pattern) { rule.regex = pattern; return this; }
+        public FieldRuleBuilder<T, F> notBlank() { rule.notBlank = true; return this; }
 
-        public FieldRuleBuilder<T> inEnum(String... values) {
+        public FieldRuleBuilder<T, F> inEnum(String... values) {
             rule.enumValues = new HashSet<>(Arrays.asList(values));
             return this;
         }
 
-        public FieldRuleBuilder<T> minSize(int size) { rule.minSize = size; return this; }
-        public FieldRuleBuilder<T> maxSize(int size) { rule.maxSize = size; return this; }
+        public FieldRuleBuilder<T, F> minSize(int size) { rule.minSize = size; return this; }
+        public FieldRuleBuilder<T, F> maxSize(int size) { rule.maxSize = size; return this; }
 
-        public FieldRuleBuilder<T> notBefore(LocalDate date) { rule.notBefore = date; return this; }
-        public FieldRuleBuilder<T> notAfter(LocalDate date) { rule.notAfter = date; return this; }
+        public FieldRuleBuilder<T, F> notBefore(LocalDate date) { rule.notBefore = date; return this; }
+        public FieldRuleBuilder<T, F> notAfter(LocalDate date) { rule.notAfter = date; return this; }
 
-        public FieldRuleBuilder<T> custom(Predicate<Object> predicate, String message) {
-            rule.customRules.add(new FieldRule.CustomRule(predicate, message));
+        public FieldRuleBuilder<T, F> custom(Predicate<F> predicate, String message) {
+            rule.customRules.add(new FieldRule.CustomRule((Predicate<Object>)predicate, message));
             return this;
         }
 
-        public FieldRuleBuilder<T> validate(FieldValidator<T> validator) {
-            rule.validators.add(validator);
+        public FieldRuleBuilder<T, F> validate(Validator<F> validator) {
+            rule.validators.add((Validator<Object>) validator);
             return this;
         }
 
@@ -151,7 +151,7 @@ public class Validator<T> {
         private LocalDate notBefore, notAfter;
         public static record CustomRule(Predicate<Object> predicate, String message) { }
         private final List<CustomRule> customRules = new ArrayList<>();
-        private final List<FieldValidator<T>> validators = new ArrayList<>();
+        private final List<Validator<Object>> validators = new ArrayList<>();
 
         FieldRule(FieldName.FieldReference<T, ?> ref) {
             this(FieldName.nameOf(ref));
@@ -236,7 +236,8 @@ public class Validator<T> {
 
             // validators
             for (var validator : validators) {
-                errors.addAll(validator.validate(fieldName, value));
+                var result = validator.validate(value);
+                errors.addAll(result.getErrors());
             }
         }
     }
