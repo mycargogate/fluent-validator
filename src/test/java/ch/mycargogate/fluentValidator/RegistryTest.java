@@ -9,6 +9,14 @@ public class RegistryTest {
     static class User {
         String email;
         Integer age;
+
+        public String getEmail() {
+            return email;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
     }
 
     @Test
@@ -16,12 +24,12 @@ public class RegistryTest {
         DefaultRegistry<Object> registry = new DefaultRegistry<>();
 
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("email")
-                .custom(registry.get("email").getPredicate(),
+                .fieldRule(User::getEmail)
+                .custom(registry.get("email").getPredicate(String.class),
                         registry.get("email").getMessage())
                 .done()
-                .fieldRule("age")
-                .custom(registry.get("positive").getPredicate(),
+                .fieldRule(User::getAge)
+                .custom(registry.get("positive").getPredicate(Integer.class),
                         registry.get("positive").getMessage())
                 .done()
                 .build();
@@ -43,8 +51,8 @@ public class RegistryTest {
                 "Must be an even number");
 
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("age")
-                .custom(registry.get("even").getPredicate(),
+                .fieldRule(User::getAge)
+                .custom(registry.get("even").getPredicate(Integer.class),
                         registry.get("even").getMessage())
                 .done()
                 .build();

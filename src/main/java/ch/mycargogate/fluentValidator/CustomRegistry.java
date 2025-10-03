@@ -32,8 +32,9 @@ public interface CustomRegistry<T> {
             this.message = message;
         }
 
-        public Predicate<Object> getPredicate() {
-            return predicate;
+        public <T> Predicate<T> getPredicate(Class<T> clazz) {
+            //noinspection unchecked
+            return (Predicate<T>)predicate;
         }
 
         public String getMessage() {

@@ -3,9 +3,7 @@ package ch.mycargogate.fluentValidator;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -130,8 +128,8 @@ public class ValidatorCoreTest {
     @Test
     void mandatory_and_optional_rules() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("name").mandatory().done()
-                .fieldRule("email").optional().regex(".+@.+\\..+").done()
+                .fieldRule(User::getName).mandatory().done()
+                .fieldRule(User::getEmail).optional().regex(".+@.+\\..+").done()
                 .build();
 
         User u = new User();
@@ -148,8 +146,8 @@ public class ValidatorCoreTest {
     @Test
     void numeric_min_max_rules() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("age").min(0).max(120).done()
-                .fieldRule("score").min(0).max(100).done()
+                .fieldRule(User::getAge).min(0).max(120).done()
+                .fieldRule(User::getScore).min(0).max(100).done()
                 .build();
 
         User u = new User();
@@ -162,6 +160,76 @@ public class ValidatorCoreTest {
         assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("score") && e.getRule().equals("max")));
     }
 
+    @Test
+    void extendsValidator() {
+
+        class A {
+            private String a;
+
+            public String getA() {
+                return a;
+            }
+        }
+        class B extends A {
+            private String b;
+
+            public String getB() {
+                return b;
+            }
+        }
+
+        var b = new B();
+
+        var validatorA = Validator.<A>builder()
+                .fieldRule(A::getA).mandatory().done()
+                .build();
+
+        var validatorB = Validator.<B>builder()
+                .extendsValidator(validatorA)
+                .fieldRule(B::getB).mandatory().done()
+                .build();
+
+        Validator.ValidationResult result = validatorB.validate(b);
+        // result.getErrors().forEach(System.out::println);
+        assertFalse(result.isValid());
+        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getRule().equals("mandatory")));
+        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("b")).anyMatch(e -> e.getRule().equals("mandatory")));
+    }
+
+    @Test
+    void collectionValidators() {
+
+        class A {
+            private String a;
+
+            public String getA() {
+                return a;
+            }
+        }
+
+        class B  {
+            private List<A> listOfAs = Arrays.asList(new A(), new A());
+
+            public List<A> getListOfAs() {
+                return listOfAs;
+            }
+        }
+
+        var b = new B();
+
+        var validatorA = Validator.<A>builder()
+                .fieldRule(A::getA).mandatory().done()
+                .build();
+
+        var validatorB = Validator.<B>builder()
+                .collectionRule(B::getListOfAs).mandatory().elementValidator(validatorA).done()
+                .build();
+
+        Validator.ValidationResult result = validatorB.validate(b);
+        result.getErrors().forEach(System.out::println);
+        assertFalse(result.isValid());
+        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getRule().equals("mandatory")));
+    }
 
     @Test
     void validator() {
@@ -194,7 +262,7 @@ public class ValidatorCoreTest {
     @Test
     void string_length_regex_and_notBlank_rules() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("name").notBlank().minLength(3).maxLength(5).regex("A.*").done()
+                .fieldRule(User::getName).notBlank().minLength(3).maxLength(5).regex("A.*").done()
                 .build();
 
         // 1) blank
@@ -229,8 +297,8 @@ public class ValidatorCoreTest {
     @Test
     void enum_rules_for_string_and_enum_fields() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("status").inEnum("NEW", "DONE").done()
-                .fieldRule("role").inEnum("ADMIN").done()
+                .fieldRule(User::getStatus).inEnum("NEW", "DONE").done()
+                .fieldRule(User::getRole).inEnum("ADMIN").done()
                 .build();
 
         User u = new User();
@@ -246,7 +314,7 @@ public class ValidatorCoreTest {
     @Test
     void collection_size_rules() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("tags").minSize(1).maxSize(3).done()
+                .collectionRule(User::getTags).minSize(1).maxSize(3).done()
                 .build();
 
         User u1 = new User();
@@ -265,7 +333,7 @@ public class ValidatorCoreTest {
     @Test
     void date_range_rules() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("date")
+                .fieldRule(User::getDate)
                 .notBefore(LocalDate.of(2020, 1, 1))
                 .notAfter(LocalDate.of(2020, 12, 31))
                 .done()
@@ -287,7 +355,7 @@ public class ValidatorCoreTest {
     @Test
     void custom_predicate_rule() {
         Validator<User> validator = Validator.<User>builder()
-                .fieldRule("email")
+                .fieldRule(User::getEmail)
                 .custom(s -> s != null && s.toString().contains("@"), "must contain @")
                 .done()
                 .build();
@@ -310,6 +378,6 @@ public class ValidatorCoreTest {
 
         var result = validator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField() == null && e.getRule().equals("objectRule")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField() == null && e.getRule().equals("ObjectRule")));
     }
 }
