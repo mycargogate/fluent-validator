@@ -1,3 +1,0 @@
-field,name,mandatory
-field,age,mandatory,min=0,max=120
-objectRule,User must be an adult

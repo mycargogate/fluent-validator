@@ -136,7 +136,7 @@ public class ValidatorCoreTest {
         u.name = null; // mandatory should fail
         u.email = null; // optional with null should be fine
 
-        Validator.ValidationResult result = validator.validate(u);
+        ValidationResult result = validator.validate(u);
         assertFalse(result.isValid());
         assertTrue(result.getErrors().stream().anyMatch(e -> e.getRule().equals("mandatory")));
         // ensure only name triggered, not email
@@ -189,7 +189,7 @@ public class ValidatorCoreTest {
                 .fieldRule(B::getB).mandatory().done()
                 .build();
 
-        Validator.ValidationResult result = validatorB.validate(b);
+        ValidationResult result = validatorB.validate(b);
         // result.getErrors().forEach(System.out::println);
         assertFalse(result.isValid());
         assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getRule().equals("mandatory")));
@@ -225,7 +225,7 @@ public class ValidatorCoreTest {
                 .collectionRule(B::getListOfAs).mandatory().elementValidator(validatorA).done()
                 .build();
 
-        Validator.ValidationResult result = validatorB.validate(b);
+        ValidationResult result = validatorB.validate(b);
         result.getErrors().forEach(System.out::println);
         assertFalse(result.isValid());
         assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getRule().equals("mandatory")));
@@ -314,7 +314,7 @@ public class ValidatorCoreTest {
     @Test
     void collection_size_rules() {
         Validator<User> validator = Validator.<User>builder()
-                .collectionRule(User::getTags).minSize(1).maxSize(3).done()
+                .collectionRule(User::getTags).minSize(2).maxSize(3).done()
                 .build();
 
         User u1 = new User();

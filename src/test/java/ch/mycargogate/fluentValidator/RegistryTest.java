@@ -38,7 +38,7 @@ public class RegistryTest {
         u.email = "invalid";  // not a valid email
         u.age = -5;           // not positive
 
-        Validator.ValidationResult result = validator.validate(u);
+        ValidationResult result = validator.validate(u);
 
         assertFalse(result.isValid());
         assertTrue(result.getErrors().stream().anyMatch(e -> e.getRule().equals("custom")));
@@ -60,7 +60,7 @@ public class RegistryTest {
         User u = new User();
         u.age = 3; // odd, should fail
 
-        Validator.ValidationResult result = validator.validate(u);
+        ValidationResult result = validator.validate(u);
 
         assertFalse(result.isValid());
         assertEquals("Must be an even number",

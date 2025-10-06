@@ -3,12 +3,7 @@ package ch.mycargogate.fluentValidator;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
 
-public class FieldName {
-
-    @FunctionalInterface
-    public interface FieldReference<T, R> extends java.io.Serializable {
-        R apply(T t);
-    }
+class FieldName {
 
     public static <T> String nameOf(FieldReference<T, ?> ref) {
         try {
@@ -22,6 +17,17 @@ public class FieldName {
                 return Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
             }
             throw new IllegalArgumentException("Not a getter: " + methodName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> String methodNameOf(FieldReference<T, ?> ref) {
+        try {
+            Method writeReplace = ref.getClass().getDeclaredMethod("writeReplace");
+            writeReplace.setAccessible(true);
+            SerializedLambda lambda = (SerializedLambda) writeReplace.invoke(ref);
+            return  lambda.getImplMethodName();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -39,34 +39,36 @@ It provides a **fluent API** to build validation rules, supports **CSV/JSON conf
 ## 🚀 Usage Example – Fluent API
 
 ```java
+import ch.mycargogate.fluentValidator.ValidationError;
+import ch.mycargogate.fluentValidator.ValidationResult;
 import ch.mycargogate.fluentValidator.Validator;
 
 public class Demo {
-    static class User {
-        String name;
-        Integer age;
-    }
+  static class User {
+    String name;
+    Integer age;
+  }
 
-    public static void main(String[] args) {
-        Validator<User> validator = Validator.<User>builder()
+  public static void main(String[] args) {
+    Validator<User> validator = Validator.<User>validatorBuilder()
             .fieldRule("name").mandatory().notBlank().done()
             .fieldRule("age").mandatory().min(0).max(120).done()
             .objectRule(u -> u.age != null && u.age >= 18, "User must be an adult")
             .build();
 
-        User user = new User();
-        user.name = "Alice";
-        user.age = 15;
+    User user = new User();
+    user.name = "Alice";
+    user.age = 15;
 
-        Validator.ValidationResult result = validator.validate(user);
+    ValidationResult result = validator.validate(user);
 
-        if (!result.isValid()) {
-            for (Validator.ValidationError e : result.getErrors()) {
-                System.out.printf("Field=%s | Rule=%s | Msg=%s%n",
-                        e.getField(), e.getRule(), e.getMessage());
-            }
-        }
+    if (!result.isValid()) {
+      for (ValidationError e : result.getErrors()) {
+        System.out.printf("Field=%s | Rule=%s | Msg=%s%n",
+                e.getField(), e.getRule(), e.getMessage());
+      }
     }
+  }
 }
 ```
 
@@ -134,7 +136,7 @@ registry.register("even", v -> v instanceof Integer i && i % 2 == 0,
 
 **Use in Fluent API:**
 ```java
-Validator<User> validator = Validator.<User>builder()
+Validator<User> validator = Validator.<User>validatorBuilder()
     .fieldRule("age")
         .custom(registry.get("even").getPredicate(),
                 registry.get("even").getMessage())
