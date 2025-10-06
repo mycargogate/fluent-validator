@@ -19,8 +19,10 @@ class CollectionRule<E> extends ValueRule<Collection<E>> {
 
     @Override
     void doValidate(String holder, Collection<E> collection, Collection<ValidationError> errors) {
-
         super.doValidate(holder, collection, errors);
+
+        // optional null value
+        if(collection == null ) return;
 
         if (minSize != null && collection.size() < minSize)
             errors.add(new ValidationError(holder, getFieldName(), "minSize", "size must be ≥ " + minSize));

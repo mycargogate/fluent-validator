@@ -113,12 +113,13 @@ class ValueRule<F> extends ValidationRule {
                 errors.add(new ValidationError(holder, fieldName, "mandatory", "is mandatory"));
             }
             return;
-        }
+        } else {
 
-        // custom rules
-        for(var customRule : customRules) {
-            if (!customRule.predicate().test(value)) {
-                errors.add(new ValidationError(holder, fieldName, "custom", customRule.message()));
+            // custom rules
+            for (var customRule : customRules) {
+                if (!customRule.predicate().test(value)) {
+                    errors.add(new ValidationError(holder, fieldName, "custom", customRule.message()));
+                }
             }
         }
     }

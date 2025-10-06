@@ -30,6 +30,9 @@ class FieldRule<F> extends ValueRule<F> {
     void doValidate(String holder, F value, Collection<ValidationError> errors) {
         super.doValidate(holder, value, errors);
 
+        // optional null value
+        if(value == null) return;
+
         // numeric
         if (value instanceof Number) {
             double d = ((Number) value).doubleValue();
