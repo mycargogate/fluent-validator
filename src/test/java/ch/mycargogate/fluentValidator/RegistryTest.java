@@ -22,15 +22,13 @@ public class RegistryTest {
     @Test
     void testDefaultRegistryBuiltInRules() {
         DefaultRegistry<Object> registry = new DefaultRegistry<>();
+        registry.register("email", v -> v instanceof String s && s.matches("^[^@]+@[^@]+\\.[^@]+$"),
+                "EMAIL_FORMAT");
 
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getEmail)
-                .custom(registry.get("email").getPredicate(String.class),
-                        registry.get("email").getMessage())
-                .done()
-                .fieldRule(User::getAge)
-                .custom(registry.get("positive").getPredicate(Integer.class),
-                        registry.get("positive").getMessage())
+                .predicate(registry.get("email").getPredicate(String.class),
+                        registry.get("email").getCode())
                 .done()
                 .build();
 
@@ -38,32 +36,31 @@ public class RegistryTest {
         u.email = "invalid";  // not a valid email
         u.age = -5;           // not positive
 
-        ValidationResult result = validator.validate(u);
+        ValidationResult result = fluentValidator.validate(u);
 
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getRule().equals("custom")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getCode().equals("EMAIL_FORMAT")));
     }
 
     @Test
     void testDynamicRegistryRule() {
         DefaultRegistry<Object> registry = new DefaultRegistry<>();
         registry.register("even", v -> v instanceof Integer i && i % 2 == 0,
-                "Must be an even number");
+                "MUST_BE_EVEN");
 
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getAge)
-                .custom(registry.get("even").getPredicate(Integer.class),
-                        registry.get("even").getMessage())
+                .predicate(registry.get("even").getPredicate(Integer.class),
+                        registry.get("even").getCode())
                 .done()
                 .build();
 
         User u = new User();
         u.age = 3; // odd, should fail
 
-        ValidationResult result = validator.validate(u);
+        ValidationResult result = fluentValidator.validate(u);
 
         assertFalse(result.isValid());
-        assertEquals("Must be an even number",
-                result.getErrors().get(0).getMessage());
+        assertEquals("MUST_BE_EVEN", result.getErrors().get(0).getCode());
     }
 }

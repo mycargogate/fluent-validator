@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 
 class FieldName {
 
-    public static <T> String nameOf(FieldReference<T, ?> ref) {
+    public static <T> String nameOf(GetterRef<T, ?> ref) {
         try {
             Method writeReplace = ref.getClass().getDeclaredMethod("writeReplace");
             writeReplace.setAccessible(true);
@@ -17,17 +17,6 @@ class FieldName {
                 return Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
             }
             throw new IllegalArgumentException("Not a getter: " + methodName);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> String methodNameOf(FieldReference<T, ?> ref) {
-        try {
-            Method writeReplace = ref.getClass().getDeclaredMethod("writeReplace");
-            writeReplace.setAccessible(true);
-            SerializedLambda lambda = (SerializedLambda) writeReplace.invoke(ref);
-            return  lambda.getImplMethodName();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

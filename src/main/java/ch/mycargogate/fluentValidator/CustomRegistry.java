@@ -1,5 +1,7 @@
 package ch.mycargogate.fluentValidator;
 
+import lombok.Getter;
+
 import java.util.function.Predicate;
 
 /**
@@ -25,20 +27,18 @@ public interface CustomRegistry<T> {
 
     class RuleEntry {
         private final Predicate<Object> predicate;
-        private final String message;
 
-        public RuleEntry(Predicate<Object> predicate, String message) {
+        @Getter
+        private final String code;
+
+        public RuleEntry(Predicate<Object> predicate, String code) {
             this.predicate = predicate;
-            this.message = message;
+            this.code = code;
         }
 
         public <T> Predicate<T> getPredicate(Class<T> clazz) {
             //noinspection unchecked
             return (Predicate<T>)predicate;
-        }
-
-        public String getMessage() {
-            return message;
         }
     }
 }

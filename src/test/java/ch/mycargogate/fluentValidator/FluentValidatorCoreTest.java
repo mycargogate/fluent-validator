@@ -7,7 +7,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ValidatorCoreTest {
+public class FluentValidatorCoreTest {
     static class Address {
         private String line;
         private String city;
@@ -127,7 +127,7 @@ public class ValidatorCoreTest {
 
     @Test
     void mandatory_and_optional_rules() {
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getName).mandatory().done()
                 .fieldRule(User::getEmail).optional().regex(".+@.+\\..+").done()
                 .build();
@@ -136,16 +136,16 @@ public class ValidatorCoreTest {
         u.name = null; // mandatory should fail
         u.email = null; // optional with null should be fine
 
-        ValidationResult result = validator.validate(u);
+        ValidationResult result = fluentValidator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getRule().equals("mandatory")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.MISSING_VALUE)));
         // ensure only name triggered, not email
         assertTrue(result.getErrors().stream().allMatch(e -> "name".equals(e.getField())));
     }
 
     @Test
     void numeric_min_max_rules() {
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getAge).min(0).max(120).done()
                 .fieldRule(User::getScore).min(0).max(100).done()
                 .build();
@@ -154,10 +154,10 @@ public class ValidatorCoreTest {
         u.age = -1;     // violates min
         u.score = 150d; // violates max
 
-        var result = validator.validate(u);
+        var result = fluentValidator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("age") && e.getRule().equals("min")));
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("score") && e.getRule().equals("max")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("age") && e.getCode().equals(ErrorCode.LOWER_THAN_MIN)));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("score") && e.getCode().equals(ErrorCode.GREATER_THAN_MAX)));
     }
 
     @Test
@@ -180,11 +180,11 @@ public class ValidatorCoreTest {
 
         var b = new B();
 
-        var validatorA = Validator.<A>builder()
+        var validatorA = FluentValidator.<A>builder()
                 .fieldRule(A::getA).mandatory().done()
                 .build();
 
-        var validatorB = Validator.<B>builder()
+        var validatorB = FluentValidator.<B>builder()
                 .extendsValidator(validatorA)
                 .fieldRule(B::getB).mandatory().done()
                 .build();
@@ -192,8 +192,8 @@ public class ValidatorCoreTest {
         ValidationResult result = validatorB.validate(b);
         // result.getErrors().forEach(System.out::println);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getRule().equals("mandatory")));
-        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("b")).anyMatch(e -> e.getRule().equals("mandatory")));
+        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getCode().equals(ErrorCode.MISSING_VALUE)));
+        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("b")).anyMatch(e -> e.getCode().equals(ErrorCode.MISSING_VALUE)));
     }
 
     @Test
@@ -217,29 +217,29 @@ public class ValidatorCoreTest {
 
         var b = new B();
 
-        var validatorA = Validator.<A>builder()
+        var validatorA = FluentValidator.<A>builder()
                 .fieldRule(A::getA).mandatory().done()
                 .build();
 
-        var validatorB = Validator.<B>builder()
+        var validatorB = FluentValidator.<B>builder()
                 .collectionRule(B::getListOfAs).mandatory().elementValidator(validatorA).done()
                 .build();
 
         ValidationResult result = validatorB.validate(b);
         result.getErrors().forEach(System.out::println);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getRule().equals("mandatory")));
+        assertTrue(result.getErrors().stream().filter(e -> e.getField().equals("a")).anyMatch(e -> e.getCode().equals(ErrorCode.MISSING_VALUE)));
     }
 
     @Test
     void validator() {
-        var addressValidator = Validator.<Address>builder()
+        var addressValidator = FluentValidator.<Address>builder()
                 .fieldRule(Address::getLine).mandatory().done()
                 .fieldRule(Address::getCity).mandatory().done()
                 .fieldRule(Address::getZipcode).mandatory().done()
                 .build();
 
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getAddress).validate(addressValidator).done()
                 .build();
 
@@ -253,7 +253,7 @@ public class ValidatorCoreTest {
         u.score = 150d; // violates max
         u.address = a;
 
-        var result = validator.validate(u);
+        var result = fluentValidator.validate(u);
         if(result.getErrors() != null)
             result.getErrors().forEach(System.out::println);
         assertTrue(result.isValid());
@@ -261,42 +261,42 @@ public class ValidatorCoreTest {
 
     @Test
     void string_length_regex_and_notBlank_rules() {
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getName).notBlank().minLength(3).maxLength(5).regex("A.*").done()
                 .build();
 
         // 1) blank
         User u1 = new User();
         u1.name = "  ";
-        var r1 = validator.validate(u1);
+        var r1 = fluentValidator.validate(u1);
         assertFalse(r1.isValid());
-        assertTrue(r1.getErrors().stream().anyMatch(e -> e.getRule().equals("notBlank")));
+        assertTrue(r1.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.NOT_BLANK)));
 
         // 2) too short
         User u2 = new User();
         u2.name = "Al";
-        var r2 = validator.validate(u2);
+        var r2 = fluentValidator.validate(u2);
         assertFalse(r2.isValid());
-        assertTrue(r2.getErrors().stream().anyMatch(e -> e.getRule().equals("minLength")));
+        assertTrue(r2.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.LENGTH_LOWER_THAN)));
 
         // 3) too long
         User u3 = new User();
         u3.name = "Albion";
-        var r3 = validator.validate(u3);
+        var r3 = fluentValidator.validate(u3);
         assertFalse(r3.isValid());
-        assertTrue(r3.getErrors().stream().anyMatch(e -> e.getRule().equals("maxLength")));
+        assertTrue(r3.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.LENGTH_GREATER_THAN)));
 
         // 4) regex mismatch
         User u4 = new User();
         u4.name = "Bob";
-        var r4 = validator.validate(u4);
+        var r4 = fluentValidator.validate(u4);
         assertFalse(r4.isValid());
-        assertTrue(r4.getErrors().stream().anyMatch(e -> e.getRule().equals("regex")));
+        assertTrue(r4.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.REGEX_DONT_MATCH)));
     }
 
     @Test
     void enum_rules_for_string_and_enum_fields() {
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getStatus).inEnum("NEW", "DONE").done()
                 .fieldRule(User::getRole).inEnum("ADMIN").done()
                 .build();
@@ -305,79 +305,79 @@ public class ValidatorCoreTest {
         u.status = "PENDING";    // not in [NEW, DONE]
         u.role = Role.USER;       // not ADMIN
 
-        var result = validator.validate(u);
+        var result = fluentValidator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("status") && e.getRule().equals("enum")));
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("role") && e.getRule().equals("enum")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("status") && e.getCode().equals(ErrorCode.MUST_BE_ONE_OF)));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("role") && e.getCode().equals(ErrorCode.MUST_BE_ONE_OF)));
     }
 
     @Test
     void collection_size_rules() {
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .collectionRule(User::getTags).minSize(2).maxSize(3).done()
                 .build();
 
         User u1 = new User();
         u1.tags = Set.of(); // too small
-        var r1 = validator.validate(u1);
+        var r1 = fluentValidator.validate(u1);
         assertFalse(r1.isValid());
-        assertTrue(r1.getErrors().stream().anyMatch(e -> e.getRule().equals("minSize")));
+        assertTrue(r1.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.SIZE_LT)));
 
         User u2 = new User();
         u2.tags = Set.of("a", "b", "c", "d"); // too large
-        var r2 = validator.validate(u2);
+        var r2 = fluentValidator.validate(u2);
         assertFalse(r2.isValid());
-        assertTrue(r2.getErrors().stream().anyMatch(e -> e.getRule().equals("maxSize")));
+        assertTrue(r2.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.SIZE_GT)));
     }
 
     @Test
     void date_range_rules() {
-        Validator<User> validator = Validator.<User>builder()
-                .fieldRule(User::getDate)
-                .notBefore(LocalDate.of(2020, 1, 1))
-                .notAfter(LocalDate.of(2020, 12, 31))
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
+                .fieldRule(User::getDate).notBefore(LocalDate.of(2020, 1, 1)).notAfter(LocalDate.of(2020, 12, 31))
                 .done()
                 .build();
 
         User u1 = new User();
         u1.date = LocalDate.of(2019, 12, 31);
-        var r1 = validator.validate(u1);
+        var r1 = fluentValidator.validate(u1);
         assertFalse(r1.isValid());
-        assertTrue(r1.getErrors().stream().anyMatch(e -> e.getRule().equals("notBefore")));
+        assertTrue(r1.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.DATE_BEFORE)));
 
         User u2 = new User();
         u2.date = LocalDate.of(2021, 1, 1);
-        var r2 = validator.validate(u2);
+        var r2 = fluentValidator.validate(u2);
         assertFalse(r2.isValid());
-        assertTrue(r2.getErrors().stream().anyMatch(e -> e.getRule().equals("notAfter")));
+        assertTrue(r2.getErrors().stream().anyMatch(e -> e.getCode().equals(ErrorCode.DATE_AFTER)));
     }
 
     @Test
     void custom_predicate_rule() {
-        Validator<User> validator = Validator.<User>builder()
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
                 .fieldRule(User::getEmail)
-                .custom(s -> s != null && s.toString().contains("@"), "must contain @")
+                .predicate(s -> s != null && s.contains("@"), "EMAIL_FORMAT")
                 .done()
                 .build();
 
         User u = new User();
         u.email = "invalid";
-        var result = validator.validate(u);
+        var result = fluentValidator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("email") && e.getRule().equals("custom") && e.getMessage().equals("must contain @")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("email") && e.getCode().equals("EMAIL_FORMAT") && e.getMessage().contains("must contain @")));
     }
 
     @Test
     void object_rule() {
-        Validator<User> validator = Validator.<User>builder()
-                .objectRule(u -> u.age != null && u.age >= 18, "User must be an adult")
+
+        String CODE = "MUST_BE_ADULT";
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
+                .objectRule(u -> u.age != null && u.age >= 18, CODE)
                 .build();
 
         User u = new User();
         u.age = 16;
 
-        var result = validator.validate(u);
+        var result = fluentValidator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField() == null && e.getRule().equals("ObjectRule")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField() == null && e.getCode().equals(CODE)));
     }
 }

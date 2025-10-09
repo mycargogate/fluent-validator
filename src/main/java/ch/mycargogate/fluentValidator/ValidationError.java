@@ -2,15 +2,23 @@ package ch.mycargogate.fluentValidator;
 
 // ==== ValidationError ====
 public class ValidationError {
+
     private final String holder;
     private final String field;
-    private final String rule;
+    private final String code;
     private final String message;
 
-    public ValidationError(String holder, String field, String rule, String message) {
+    public ValidationError(String holder, String field, ErrorCodeMessage ecm) {
         this.holder = holder;
         this.field = field;
-        this.rule = rule;
+        this.code = ecm.code();
+        this.message = ecm.message();
+    }
+
+    public ValidationError(String holder, String field, String code, String message) {
+        this.holder = holder;
+        this.field = field;
+        this.code = code;
         this.message = message;
     }
 
@@ -31,8 +39,8 @@ public class ValidationError {
         return holder + "." + field;
     }
 
-    public String getRule() {
-        return rule;
+    public String getCode() {
+        return code;
     }
 
     public String getMessage() {

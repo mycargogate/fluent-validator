@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 public class ValidatorReaderJson {
 
-    public Validator<?> fromResource(String resource) {
+    public FluentValidator<?> fromResource(String resource) {
         try {
             InputStream is = Objects.requireNonNull(
                     getClass().getClassLoader().getResourceAsStream(resource),
@@ -29,7 +29,7 @@ public class ValidatorReaderJson {
             );
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(is);
-            Validator.Builder<Object> validatorBuilder = Validator.builder();
+            FluentValidator.Builder<Object> validatorBuilder = FluentValidator.builder();
 
             var schemaNode = root.get("schema");
             if(schemaNode == null) throw new RuntimeException("schema field is missing");
@@ -44,7 +44,7 @@ public class ValidatorReaderJson {
             }
 
             for (JsonNode f : root.get("fields")) {
-                FieldRule.Builder<Object, ?> fr = validatorBuilder.fieldRule(schema, f.get("name").asText());
+                FieldValidator.Builder<Object, ?> fr = validatorBuilder.fieldRule(schema, f.get("name").asText());
                 if (f.has("mandatory") && f.get("mandatory").asBoolean()) fr.mandatory();
                 if (f.has("notBlank") && f.get("notBlank").asBoolean()) fr.notBlank();
                 if (f.has("min")) fr.min(f.get("min").asDouble());

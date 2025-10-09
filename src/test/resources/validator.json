@@ -1,21 +1,30 @@
 {
-  "schema": "ch.mycargogate.fluentValidator.ValidatorReaderJsonTest$User",
-  "fields": [
+  "properties": [
     {
-      "name": "name",
-      "mandatory": true,
-      "notBlank": true
+      "name": "workflow",
+      "value": "import"
     },
     {
-      "name": "age",
-      "mandatory": true,
-      "min": 0,
-      "max": 120
+      "name": "country",
+      "value": "ch"
     }
   ],
-  "objectRules": [
+  "validators": [
     {
-      "message": "User must be an adult"
+      "schema": "AddressParty",
+      "holder": "order.recipient.address",
+      "fields": [
+        {
+          "name": "addressLine1",
+          "mandatory": true,
+          "maxLenght": 25
+        },
+        {
+          "name": "addressLine2",
+          "mandatory": false,
+          "maxLenght": 25
+        }
+      ]
     }
   ]
 }

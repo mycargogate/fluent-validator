@@ -39,9 +39,10 @@ It provides a **fluent API** to build validation rules, supports **CSV/JSON conf
 ## 🚀 Usage Example – Fluent API
 
 ```java
+import ch.mycargogate.fluentValidator.FluentValidator;
+import ch.mycargogate.fluentValidator.Validator;
 import ch.mycargogate.fluentValidator.ValidationError;
 import ch.mycargogate.fluentValidator.ValidationResult;
-import ch.mycargogate.fluentValidator.Validator;
 
 public class Demo {
   static class User {
@@ -50,7 +51,7 @@ public class Demo {
   }
 
   public static void main(String[] args) {
-    Validator<User> validator = Validator.<User>validatorBuilder()
+    FluentValidator<User> fluentValidator = FluentValidator.<User>validatorBuilder()
             .fieldRule("name").mandatory().notBlank().done()
             .fieldRule("age").mandatory().min(0).max(120).done()
             .objectRule(u -> u.age != null && u.age >= 18, "User must be an adult")
@@ -60,7 +61,7 @@ public class Demo {
     user.name = "Alice";
     user.age = 15;
 
-    ValidationResult result = validator.validate(user);
+    ValidationResult result = fluentValidator.validate(user);
 
     if (!result.isValid()) {
       for (ValidationError e : result.getErrors()) {
@@ -81,7 +82,7 @@ Field=null | Rule=objectRule | Msg=User must be an adult
 
 ## 📂 Load Validators from CSV
 
-**File: `src/main/resources/validator.csv`**
+**File: `src/main/resources/fluentValidator.csv`**
 
 ```
 field,email,mandatory,rule=email
@@ -92,15 +93,15 @@ objectRule,User must be an adult
 **Java code:**
 ```java
 DefaultRegistry<Object> registry = new DefaultRegistry<>();
-Validator<User> validator = new ValidatorReaderCSV<User>(registry)
-    .fromResource("validator.csv");
+Validator<User> fluentValidator = new ValidatorReaderCSV<User>(registry)
+    .fromResource("fluentValidator.csv");
 ```
 
 ---
 
 ## 📂 Load Validators from JSON
 
-**File: `src/main/resources/validator.json`**
+**File: `src/main/resources/fluentValidator.json`**
 
 ```json
 {
@@ -117,8 +118,8 @@ Validator<User> validator = new ValidatorReaderCSV<User>(registry)
 **Java code:**
 ```java
 DefaultRegistry<Object> registry = new DefaultRegistry<>();
-Validator<User> validator = new ValidatorReaderJson<User>(registry)
-    .fromResource("validator.json");
+Validator<User> fluentValidator = new ValidatorReaderJson<User>(registry)
+    .fromResource("fluentValidator.json");
 ```
 
 ---
@@ -136,7 +137,7 @@ registry.register("even", v -> v instanceof Integer i && i % 2 == 0,
 
 **Use in Fluent API:**
 ```java
-Validator<User> validator = Validator.<User>validatorBuilder()
+Validator<User> fluentValidator = Validator.<User>validatorBuilder()
     .fieldRule("age")
         .custom(registry.get("even").getPredicate(),
                 registry.get("even").getMessage())
