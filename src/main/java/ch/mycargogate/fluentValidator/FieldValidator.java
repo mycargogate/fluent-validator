@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 @Getter
 @Setter
 class FieldValidator<F> extends ValueValidator<F> {
-    public static String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-] + (?:\\.[a-zA-Z0-9_+&*-] + )*@(?:[a-zA-Z0-9-]+\\.) + [a-zA-Z]{2, 7}";
+    public static String EMAIL_REGEX = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
     public static String EMAIL_CODE = "INVALID_EMAIL";
 
     private Double min, max;
@@ -95,7 +95,7 @@ class FieldValidator<F> extends ValueValidator<F> {
 
             if (regex != null && !s.matches(regex)) {
                 String code = customCode == null? ErrorCode.REGEX_DONT_MATCH: customCode;
-                String message = ValidatorMessages.translate(code, getFullFieldName(holder), s, maxLength);
+                String message = ValidatorMessages.translate(code, getFullFieldName(holder), s, regex);
                 addErrorMessage(holder, errors, ErrorCode.REGEX_DONT_MATCH, message);
             }
 
@@ -142,7 +142,15 @@ class FieldValidator<F> extends ValueValidator<F> {
 
         // validators
         if(validator != null) {
-            var result = validator.validate(holder, value);
+
+            String elementHolder = holder == null? value.getClass().getSimpleName(): holder;
+            if( value instanceof HolderNode node)
+                elementHolder += "[" + node.holderNodeName() + "]";
+            else
+                elementHolder +=  "." + getFieldName();
+
+            var newHolder = getFullFieldName(holder);
+            var result = validator.validate(newHolder, value);
             errors.addAll(result.getErrors());
         }
     }

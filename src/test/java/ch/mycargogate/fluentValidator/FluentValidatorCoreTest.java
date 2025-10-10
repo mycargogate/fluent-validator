@@ -353,16 +353,14 @@ public class FluentValidatorCoreTest {
     @Test
     void custom_predicate_rule() {
         FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
-                .fieldRule(User::getEmail)
-                .predicate(s -> s != null && s.contains("@"), "EMAIL_FORMAT")
-                .done()
+                .fieldRule(User::getEmail).email().done()
                 .build();
 
         User u = new User();
-        u.email = "invalid";
+        u.email = "invalidacme.com";
         var result = fluentValidator.validate(u);
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("email") && e.getCode().equals("EMAIL_FORMAT") && e.getMessage().contains("must contain @")));
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getField().equals("email") && e.getCode().equals(ErrorCode.REGEX_DONT_MATCH) ));
     }
 
     @Test

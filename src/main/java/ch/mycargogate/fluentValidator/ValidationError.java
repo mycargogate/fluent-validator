@@ -1,6 +1,13 @@
 package ch.mycargogate.fluentValidator;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+
 // ==== ValidationError ====
+@Getter
+@RequiredArgsConstructor
+@ToString
 public class ValidationError {
 
     private final String holder;
@@ -15,21 +22,6 @@ public class ValidationError {
         this.message = ecm.message();
     }
 
-    public ValidationError(String holder, String field, String code, String message) {
-        this.holder = holder;
-        this.field = field;
-        this.code = code;
-        this.message = message;
-    }
-
-    public String getHolder() {
-        return field;
-    }
-
-    public String getField() {
-        return field;
-    }
-
     public String getFullField() {
         if (message == null && holder == null) return "";
 
@@ -37,14 +29,6 @@ public class ValidationError {
             return message == null ? holder : message;
 
         return holder + "." + field;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     public String getFullMessage() {

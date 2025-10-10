@@ -1,5 +1,7 @@
 package ch.mycargogate.fluentValidator;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -8,6 +10,7 @@ import static ch.mycargogate.fluentValidator.FieldName.nameOf;
 /**
  * Core Validator with fluent API
  */
+@Slf4j
 public class FluentValidator<T> {
 
     private final List<FieldValidator<Object>> fieldValidators = new ArrayList<>();
@@ -33,26 +36,30 @@ public class FluentValidator<T> {
     public static <T> Builder<T> builder() {
         return new Builder<>();
     }
+
     public ValidationResult validate(T object) {
-        return validate(object.getClass().getSimpleName(), object);
+        String holder;
+
+        if( object instanceof HolderNode node)
+            holder = object.getClass().getSimpleName() + "[" + node.holderNodeName() + "]";
+        else
+            holder = object.getClass().getSimpleName();
+
+        return validate(holder, object);
     }
 
     public ValidationResult validate(String holder, T object) {
-        return validate(holder, object, null);
-    }
+        log.debug("validate holder=" + holder + ", object class=" + object.getClass().getSimpleName());
 
-    public ValidationResult validate(String holder, T object, String collection, int index) {
-        return validate(holder, object, collection + "[" + index + "]");
-    }
-
-    public ValidationResult validate(String holder, T object, String prefix) {
         List<ValidationError> errors = new ArrayList<>();
+
+        if(holder == null) holder = getClass().getSimpleName();
 
         if( extendsFluentValidator != null) {
 
             @SuppressWarnings("unchecked")
             var val = (FluentValidator<T>) extendsFluentValidator;
-            errors.addAll(val.validate(object).getErrors());
+            errors.addAll(val.validate(holder, object).getErrors());
         }
 
         for (var rule : fieldValidators) {

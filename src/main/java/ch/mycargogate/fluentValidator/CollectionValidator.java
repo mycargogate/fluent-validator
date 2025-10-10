@@ -75,14 +75,24 @@ class CollectionValidator<E> extends ValueValidator<Collection<E>> {
         }
 
         if (elementFluentValidator != null) {
+            var newHolder = getFullFieldName(holder);
+
             int index = 0;
             for (E e : collection) {
-                var result = elementFluentValidator.validate(holder, e, getFieldName(), index);
+
+                String elementHolder = holder == null? e.getClass().getSimpleName(): holder;
+                if( e instanceof HolderNode node)
+                    elementHolder += "." +getFieldName() + "[" + node.holderNodeName() + "]";
+                else
+                    elementHolder +=  "." + getFieldName();
+
+                var result = elementFluentValidator.validate(elementHolder, e);
                 errors.addAll(result.getErrors());
                 index++;
             }
         }
     }
+
     public FluentValidator<E> getElementValidator() {
         return elementFluentValidator;
     }
