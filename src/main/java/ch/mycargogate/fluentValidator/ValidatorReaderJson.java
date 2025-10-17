@@ -65,7 +65,7 @@ public class ValidatorReaderJson {
             if (root.has("objectRules")) {
                 for (JsonNode r : root.get("objectRules")) {
                     String msg = r.has("message") ? r.get("message").asText() : "Object rule failed";
-                    validatorBuilder.objectRule(o -> true, msg);
+                    validatorBuilder.objectRule().predicate(o -> true, msg);
                 }
             }
             return validatorBuilder.build();

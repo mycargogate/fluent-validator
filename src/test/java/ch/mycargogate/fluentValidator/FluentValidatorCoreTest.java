@@ -368,7 +368,7 @@ public class FluentValidatorCoreTest {
 
         String CODE = "MUST_BE_ADULT";
         FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
-                .objectRule(u -> u.age != null && u.age >= 18, CODE)
+                .objectRule().predicate(u -> u.age != null && u.age >= 18, CODE).done()
                 .build();
 
         User u = new User();
@@ -384,7 +384,7 @@ public class FluentValidatorCoreTest {
 
         String CODE = "TESTVARGARS";
         FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
-                .objectRule(u -> false, CODE, u -> new Object[] {"STRING", 123})
+                .objectRule().predicate(u -> false, CODE, u -> new Object[] {"STRING", 123}).done()
                 .build();
 
         User u = new User();

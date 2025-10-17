@@ -131,18 +131,18 @@ public class FluentValidator<T> {
             return new CollectionValidator.Builder<T, E>(rule, this);
         }
 
-        public Builder<T> objectRule(Predicate<T> predicate, String code) {
-            return objectRule(predicate, code, null);
-        }
-
-        public Builder<T> objectRule(Predicate<T> predicate, String code, GetErrorMessageArgs<T> getArgs) {
+        public ObjectValidator.Builder<T, T> objectRule() {
             var objectValidator = new ObjectValidator<T>();
-
-            objectValidator.addPredicate(predicate, code, getArgs);
-
             validateCurrentField(objectValidator);
 
-            return this;
+            return new ObjectValidator.Builder<T, T>(objectValidator, this);
+        }
+
+        public <F> ObjectValidator.Builder<T, F>objectRule(GetterRef<T, F> ref) {
+            var objectValidator = new ObjectValidator<F>(nameOf(ref));
+            validateCurrentField(objectValidator);
+
+            return new ObjectValidator.Builder<T, F>(objectValidator, this);
         }
 
         public FluentValidator<T> build() {
