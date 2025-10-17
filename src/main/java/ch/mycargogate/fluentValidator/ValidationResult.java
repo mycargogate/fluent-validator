@@ -1,8 +1,11 @@
 package ch.mycargogate.fluentValidator;
 
+import lombok.Getter;
+
 import java.util.List;
 
 // ==== ValidationResult ====
+@Getter
 public class ValidationResult {
     private final boolean valid;
     private final List<ValidationError> errors;
@@ -18,14 +21,6 @@ public class ValidationResult {
 
     public static ValidationResult fail(List<ValidationError> errors) {
         return new ValidationResult(false, errors);
-    }
-
-    public boolean isValid() {
-        return valid;
-    }
-
-    public List<ValidationError> getErrors() {
-        return errors;
     }
 
     @Override

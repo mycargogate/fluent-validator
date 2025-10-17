@@ -29,7 +29,7 @@ public abstract class BaseValidator<F> {
             @Override
             public List<ErrorCodeMessage> run(String holder, F value) {
                 if( ! predicate.test(value) ) {
-                    String message = String.format(ValidatorMessages.translate(code, getFullFieldName(holder)));
+                    String message = String.format(ValidatorMessages.message(code, getFullFieldName(holder)));
                     return Collections.singletonList(new ErrorCodeMessage(code, message));
                 }
 

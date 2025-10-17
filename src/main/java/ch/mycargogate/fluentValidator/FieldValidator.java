@@ -2,13 +2,11 @@ package ch.mycargogate.fluentValidator;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.zone.ZoneRulesException;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -16,6 +14,7 @@ import java.util.function.Predicate;
 
 @Getter
 @Setter
+@Slf4j
 class FieldValidator<F> extends ValueValidator<F> {
     public static String EMAIL_REGEX = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
     public static String EMAIL_CODE = "INVALID_EMAIL";
@@ -65,12 +64,12 @@ class FieldValidator<F> extends ValueValidator<F> {
         if (value instanceof Number) {
             double d = ((Number) value).doubleValue();
             if (min != null && d < min) {
-                String message = ValidatorMessages.translate(ErrorCode.LOWER_THAN_MIN, getFullFieldName(holder), d, min);
+                String message = ValidatorMessages.message(ErrorCode.LOWER_THAN_MIN, getFullFieldName(holder), d, min);
                 addErrorMessage(holder, errors, ErrorCode.LOWER_THAN_MIN, message);
             }
 
             if (max != null && d > max) {
-                String message = ValidatorMessages.translate(ErrorCode.GREATER_THAN_MAX, getFullFieldName(holder), d, max);
+                String message = ValidatorMessages.message(ErrorCode.GREATER_THAN_MAX, getFullFieldName(holder), d, max);
                 addErrorMessage(holder, errors, ErrorCode.GREATER_THAN_MAX, message);
             }
         }
@@ -79,36 +78,42 @@ class FieldValidator<F> extends ValueValidator<F> {
         if (value instanceof String s) {
 
             if (notBlank && s.trim().isEmpty()) {
-                String message = ValidatorMessages.translate(ErrorCode.NOT_BLANK, getFullFieldName(holder), s);
+                String message = ValidatorMessages.message(ErrorCode.NOT_BLANK, getFullFieldName(holder), s);
                 addErrorMessage(holder, errors, ErrorCode.NOT_BLANK, message);
             }
 
             if (minLength != null && s.length() < minLength) {
-                String message = ValidatorMessages.translate(ErrorCode.LENGTH_LOWER_THAN, getFullFieldName(holder), s.length(), minLength);
+                String message = ValidatorMessages.message(ErrorCode.LENGTH_LOWER_THAN, getFullFieldName(holder), s.length(), minLength);
                 addErrorMessage(holder,  errors, ErrorCode.LENGTH_LOWER_THAN, message);
             }
 
             if (maxLength != null && s.length() > maxLength) {
-                String message = ValidatorMessages.translate(ErrorCode.LENGTH_GREATER_THAN, getFullFieldName(holder), s.length(), maxLength);
+                String message = ValidatorMessages.message(ErrorCode.LENGTH_GREATER_THAN, getFullFieldName(holder), s.length(), maxLength);
                 addErrorMessage(holder, errors, ErrorCode.LENGTH_GREATER_THAN, message);
             }
 
             if (regex != null && !s.matches(regex)) {
                 String code = customCode == null? ErrorCode.REGEX_DONT_MATCH: customCode;
-                String message = ValidatorMessages.translate(code, getFullFieldName(holder), s, regex);
+                String message = ValidatorMessages.message(code, getFullFieldName(holder), s, regex);
                 addErrorMessage(holder, errors, ErrorCode.REGEX_DONT_MATCH, message);
             }
 
             if (enumValues != null && !enumValues.contains(s)) {
-                String message = ValidatorMessages.translate(ErrorCode.MUST_BE_ONE_OF, getFullFieldName(holder), s, enumValues);
+                String message = ValidatorMessages.message(ErrorCode.MUST_BE_ONE_OF, getFullFieldName(holder), s, enumValues);
                 addErrorMessage(holder, errors, ErrorCode.MUST_BE_ONE_OF, message);
             }
         }
 
         // enum type
         if (value instanceof Enum<?> e) {
-            if (enumValues != null && !enumValues.contains(e.name())) {
-                String message = ValidatorMessages.translate(ErrorCode.MUST_BE_ONE_OF, getFullFieldName(holder), e, enumValues);
+
+            if (enumValues == null || enumValues.isEmpty()) {
+                enumValues = new HashSet<String>(Arrays.stream(e.getDeclaringClass().getEnumConstants()).map(Enum::toString).toList());
+                log.info("possible enum values: " + enumValues.toString());
+            }
+
+            if (!enumValues.contains(e.name())) {
+                String message = ValidatorMessages.message(ErrorCode.MUST_BE_ONE_OF, getFullFieldName(holder), e, enumValues);
                 addErrorMessage(holder,errors, ErrorCode.MUST_BE_ONE_OF, message);
             }
         }
@@ -128,14 +133,14 @@ class FieldValidator<F> extends ValueValidator<F> {
             if (notBefore != null && d.isBefore(notBefore)) {
                 String dateString = d.format(dateFormatter);
                 String notBeforeString = notBefore.format(dateFormatter);
-                String message = ValidatorMessages.translate(ErrorCode.DATE_BEFORE, getFullFieldName(holder), notBeforeString, notBefore);
+                String message = ValidatorMessages.message(ErrorCode.DATE_BEFORE, getFullFieldName(holder), notBeforeString, notBefore);
                 addErrorMessage(holder, errors, ErrorCode.DATE_BEFORE, message);
             }
 
             if (notAfter != null && d.isAfter(notAfter)) {
                 String dateString = d.format(dateFormatter);
                 String notAfterString = notAfter.format(dateFormatter);
-                String message = ValidatorMessages.translate(ErrorCode.DATE_AFTER, getFullFieldName(holder), notAfterString, notBefore);
+                String message = ValidatorMessages.message(ErrorCode.DATE_AFTER, getFullFieldName(holder), notAfterString, notBefore);
                 addErrorMessage(holder, errors, ErrorCode.DATE_AFTER, message);
             }
         }

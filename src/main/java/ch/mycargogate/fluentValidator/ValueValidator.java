@@ -81,7 +81,7 @@ class ValueValidator<F> extends BaseValidator<F> {
 
         if (value == null) {
             if (isMandatory()) {
-                String message = ValidatorMessages.translate(ErrorCode.MISSING_VALUE, getFullFieldName(holder));
+                String message = ValidatorMessages.message(ErrorCode.MISSING_VALUE, getFullFieldName(holder));
                 addErrorMessage(holder, errors, ErrorCode.MISSING_VALUE,message);
             }
         }

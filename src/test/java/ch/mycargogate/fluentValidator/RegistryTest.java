@@ -21,7 +21,7 @@ public class RegistryTest {
 
     @Test
     void testDefaultRegistryBuiltInRules() {
-        DefaultRegistry<Object> registry = new DefaultRegistry<>();
+        DefaultRegistry registry = new DefaultRegistry();
         registry.register("email", v -> v instanceof String s && s.matches("^[^@]+@[^@]+\\.[^@]+$"),
                 "EMAIL_FORMAT");
 
@@ -44,7 +44,7 @@ public class RegistryTest {
 
     @Test
     void testDynamicRegistryRule() {
-        DefaultRegistry<Object> registry = new DefaultRegistry<>();
+        DefaultRegistry registry = new DefaultRegistry();
         registry.register("even", v -> v instanceof Integer i && i % 2 == 0,
                 "MUST_BE_EVEN");
 

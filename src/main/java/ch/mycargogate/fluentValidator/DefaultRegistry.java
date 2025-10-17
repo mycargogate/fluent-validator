@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
+// UNDER WORK
+
 /**
  * Default registry with common reusable validators.
  */
-public class DefaultRegistry<T> implements CustomRegistry<T> {
+public class DefaultRegistry extends CustomRegistry {
 
     private final Map<String, RuleEntry> rules = new HashMap<>();
 

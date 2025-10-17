@@ -36,7 +36,7 @@ class CollectionValidator<E> extends ValueValidator<Collection<E>> {
             @Override
             public List<ErrorCodeMessage> run(String holder, E value) {
                 if( ! predicate.test(value) ) {
-                    String message = String.format(ValidatorMessages.translate(code, getFullFieldName(holder), value));
+                    String message = String.format(ValidatorMessages.message(code, getFullFieldName(holder), value));
                     return Collections.singletonList(new ErrorCodeMessage(code, message));
                 }
                 return null;
@@ -65,12 +65,12 @@ class CollectionValidator<E> extends ValueValidator<Collection<E>> {
         if(collection == null ) return;
 
         if (minSize != null && collection.size() < minSize) {
-            String message = ValidatorMessages.translate(ErrorCode.SIZE_LT, getFullFieldName(holder), collection.size(), minSize);
+            String message = ValidatorMessages.message(ErrorCode.SIZE_LT, getFullFieldName(holder), collection.size(), minSize);
             addErrorMessage(holder, errors, ErrorCode.SIZE_LT, message);
         }
 
         if (maxSize != null && collection.size() > maxSize) {
-            String message = ValidatorMessages.translate(ErrorCode.SIZE_GT, getFullFieldName(holder), collection.size(), maxSize);
+            String message = ValidatorMessages.message(ErrorCode.SIZE_GT, getFullFieldName(holder), collection.size(), maxSize);
             addErrorMessage(holder, errors, ErrorCode.SIZE_GT, message);
         }
 
