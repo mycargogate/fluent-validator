@@ -241,7 +241,11 @@ class FieldValidator<F> extends ValueValidator<F> {
         }
 
         public Builder<T, F> predicate(Predicate<F> predicate, String code) {
-            fieldValidator.addPredicate(predicate, code);
+            return predicate(predicate, code, null);
+        }
+
+        public Builder<T, F> predicate(Predicate<F> predicate, String code, GetErrorMessageArgs<F> getArgs) {
+            fieldValidator.addPredicate(predicate, code, getArgs);
             return this;
         }
 

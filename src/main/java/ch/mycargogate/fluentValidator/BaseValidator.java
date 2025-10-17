@@ -3,6 +3,7 @@ package ch.mycargogate.fluentValidator;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -24,12 +25,26 @@ public abstract class BaseValidator<F> {
     }
 
     public void addPredicate(Predicate<F> predicate, String code) {
+        addPredicate(predicate, code, null);
+    }
+
+    public void addPredicate(Predicate<F> predicate, String code, GetErrorMessageArgs<F> getArgs) {
         var rule = new RuleRunner<F>() {
 
             @Override
             public List<ErrorCodeMessage> run(String holder, F value) {
                 if( ! predicate.test(value) ) {
-                    String message = String.format(ValidatorMessages.message(code, getFullFieldName(holder)));
+                    var dynamicArgs = getArgs != null? getArgs.apply(value): null;
+                    Object [] varargs;
+                    if(dynamicArgs == null) {
+                        varargs = new Object[]{getFullFieldName(holder)};
+                    } else {
+                        varargs = new Object[dynamicArgs.length + 1];
+                        varargs[0] = getFullFieldName(holder);
+                        System.arraycopy(dynamicArgs, 0, varargs, 1, dynamicArgs.length);
+                    }
+
+                    String message = String.format(ValidatorMessages.message(code, varargs));
                     return Collections.singletonList(new ErrorCodeMessage(code, message));
                 }
 

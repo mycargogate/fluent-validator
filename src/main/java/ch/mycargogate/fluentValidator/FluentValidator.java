@@ -132,9 +132,13 @@ public class FluentValidator<T> {
         }
 
         public Builder<T> objectRule(Predicate<T> predicate, String code) {
+            return objectRule(predicate, code, null);
+        }
+
+        public Builder<T> objectRule(Predicate<T> predicate, String code, GetErrorMessageArgs<T> getArgs) {
             var objectValidator = new ObjectValidator<T>();
 
-            objectValidator.addPredicate(predicate, code);
+            objectValidator.addPredicate(predicate, code, getArgs);
 
             validateCurrentField(objectValidator);
 

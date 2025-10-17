@@ -18,9 +18,10 @@ public class ValidatorMessages {
 
             properties = new Properties();
 
+            log.info("Loading fluent-validator messages:");
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                System.out.println("Loading: " + resource);
+                log.info("   resource: " + resource);
 
                 try (InputStream is = resource.openStream()) {
                     Properties props = new Properties();
@@ -28,6 +29,7 @@ public class ValidatorMessages {
                     properties.putAll(props); // merge properties
                 }
             }
+            log.info("fluent-validator messages are loaded");
 
             if(properties.isEmpty())
                 log.error("Cannot find fluent validator messages from files named fluent-validator-messages.properties");

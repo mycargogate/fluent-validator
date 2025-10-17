@@ -378,4 +378,19 @@ public class FluentValidatorCoreTest {
         assertFalse(result.isValid());
         assertTrue(result.getErrors().stream().anyMatch(e -> e.getField() == null && e.getCode().equals(CODE)));
     }
+
+    @Test
+    void predicate_with_varargs() {
+
+        String CODE = "TESTVARGARS";
+        FluentValidator<User> fluentValidator = FluentValidator.<User>builder()
+                .objectRule(u -> false, CODE, u -> new Object[] {"STRING", 123})
+                .build();
+
+        User u = new User();
+
+        var result = fluentValidator.validate("user", u);
+        assertFalse(result.isValid());
+        assertTrue(result.getErrors().stream().anyMatch(e -> e.getMessage().equals("user- Test Varargs STRING 123")));
+    }
 }
