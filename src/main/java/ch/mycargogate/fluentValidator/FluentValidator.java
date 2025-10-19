@@ -131,18 +131,18 @@ public class FluentValidator<T> {
             return new CollectionValidator.Builder<T, E>(rule, this);
         }
 
-        public ObjectValidator.Builder<T, T> objectRule() {
+        public ObjectValidator.Builder<T> objectRule() {
             var objectValidator = new ObjectValidator<T>();
             validateCurrentField(objectValidator);
 
-            return new ObjectValidator.Builder<T, T>(objectValidator, this);
+            return new ObjectValidator.Builder<T>(objectValidator, this);
         }
 
-        public <F> ObjectValidator.Builder<T, F>objectRule(GetterRef<T, F> ref) {
-            var objectValidator = new ObjectValidator<F>(nameOf(ref));
+        public <F> ObjectValidator.Builder<T>objectRule(GetterRef<F, T> ref) {
+            var objectValidator = new ObjectValidator<T>(nameOf(ref));
             validateCurrentField(objectValidator);
 
-            return new ObjectValidator.Builder<T, F>(objectValidator, this);
+            return new ObjectValidator.Builder<T>(objectValidator, this);
         }
 
         public FluentValidator<T> build() {

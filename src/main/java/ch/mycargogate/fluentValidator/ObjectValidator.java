@@ -24,25 +24,25 @@ class ObjectValidator<F> extends BaseValidator<F> {
         }
     }
 
-    public static class Builder<T, F> {
-        private final ObjectValidator<F> objectValidator;
+    public static class Builder<T> {
+        private final ObjectValidator<T> objectValidator;
         private final FluentValidator.Builder<T> parent;
 
-        Builder(ObjectValidator<F> objectValidator, FluentValidator.Builder<T> parent) {
+        Builder(ObjectValidator<T> objectValidator, FluentValidator.Builder<T> parent) {
             this.objectValidator = objectValidator;
             this.parent = parent;
         }
 
-        public ObjectValidator.Builder<T, F> predicate(Predicate<F> predicate, String code) {
+        public ObjectValidator.Builder<T> predicate(Predicate<T> predicate, String code) {
             return predicate(predicate, code, null);
         }
 
-        public ObjectValidator.Builder<T, F> predicate(Predicate<F> predicate, String code, GetErrorMessageArgs<F> getArgs) {
+        public ObjectValidator.Builder<T> predicate(Predicate<T> predicate, String code, GetErrorMessageArgs<T> getArgs) {
             objectValidator.addPredicate(predicate, code, getArgs);
             return this;
         }
 
-        public ObjectValidator.Builder<T, F> rule(RuleRunner<F> rule) {
+        public ObjectValidator.Builder<T> rule(RuleRunner<T> rule) {
             objectValidator.addRule(rule);
             return this;
         }
