@@ -11,6 +11,7 @@ public class ErrorCode {
     public static final String DATE_AFTER = "DATE_AFTER";
     public static final String SIZE_LT = "SIZE_LT";
     public static final String SIZE_GT = "SIZE_GT";
+    public static final String FORBIDDEN = "FORBIDDEN";
     public static String LOWER_THAN_MIN = "LT_MIN";
     public static String GREATER_THAN_MAX = "GT_MAX";
 

@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 @Getter
 @Setter
 class CollectionValidator<E> extends ValueValidator<Collection<E>> {
+    private boolean forbidden = false;
     private Integer minSize, maxSize;
     private FluentValidator<E> elementFluentValidator;
     private final List<RuleRunner<E>> elementRules = new ArrayList<>();
@@ -63,6 +64,11 @@ class CollectionValidator<E> extends ValueValidator<Collection<E>> {
 
         // optional null value
         if(collection == null ) return;
+
+        if(forbidden) {
+            String message = ValidatorMessages.message(ErrorCode.FORBIDDEN, getFullFieldName(holder));
+            addErrorMessage(holder, errors, ErrorCode.FORBIDDEN, message);
+        }
 
         if (minSize != null && collection.size() < minSize) {
             String message = ValidatorMessages.message(ErrorCode.SIZE_LT, getFullFieldName(holder), collection.size(), minSize);

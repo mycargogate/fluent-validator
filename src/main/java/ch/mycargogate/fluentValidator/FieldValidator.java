@@ -19,6 +19,7 @@ class FieldValidator<F> extends ValueValidator<F> {
     public static String EMAIL_REGEX = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
     public static String EMAIL_CODE = "INVALID_EMAIL";
 
+    private boolean forbidden = false;
     private Double min, max;
     private Integer minLength, maxLength;
     private String regex;
@@ -59,6 +60,11 @@ class FieldValidator<F> extends ValueValidator<F> {
 
         // optional null value
         if(value == null) return;
+
+        if(forbidden) {
+            String message = ValidatorMessages.message(ErrorCode.FORBIDDEN, getFullFieldName(holder));
+            addErrorMessage(holder, errors, ErrorCode.SIZE_LT, message);
+        }
 
         // numeric
         if (value instanceof Number) {
@@ -177,6 +183,11 @@ class FieldValidator<F> extends ValueValidator<F> {
         Builder(FieldValidator<F> fieldValidator, FluentValidator.Builder<T> parent) {
             this.fieldValidator = fieldValidator;
             this.parent = parent;
+        }
+
+        public Builder<T, F> forbidden() {
+            fieldValidator.setForbidden(true);
+            return this;
         }
 
         public Builder<T, F> mandatory() {
